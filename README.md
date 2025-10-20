@@ -1,74 +1,70 @@
-# 🛡️ Vulnerability Analysis & Penetration Test in a Controlled Lab
+# 🛡️ Análise de Vulnerabilidades em Laboratório
 
-## Executive Summary
+### Um Pentest controlado na Metasploitable 2
 
-This project documents a comprehensive offensive security analysis conducted within an isolated laboratory environment. Leveraging Kali Linux against the intentionally vulnerable Metasploitable 2 machine, this report details the execution of reconnaissance, service enumeration, brute-force attacks, web vulnerability exploitation, and basic privilege escalation techniques. The primary objective is to demonstrate a structured penetration testing methodology, identify critical security weaknesses, and propose effective countermeasures, serving as a key technical portfolio piece.
+<p align="center">
+  <img src="https://img.shields.io/badge/Kali_Linux-557C94?style=for-the-badge&logo=kali-linux&logoColor=white" alt="Kali Linux"/>
+  <img src="https://img.shields.io/badge/VirtualBox-2D3748?style=for-the-badge&logo=virtualbox&logoColor=white" alt="VirtualBox"/>
+  <img src="https://img.shields.io/badge/Nmap-000000?style=for-the-badge&logo=nmap&logoColor=white" alt="Nmap"/>
+  <img src="https://img.shields.io/badge/Hydra-003366?style=for-the-badge&logo=hydra&logoColor=white" alt="Hydra"/>
+  <img src="https://img.shields.io/badge/SQLMap-E34F26?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLMap"/>
+</p>
 
----
+## 📝 Sumário Executivo
 
-## 🚀 Table of Contents
+Este projeto documenta uma análise de segurança ofensiva em um laboratório isolado. Usando o **Kali Linux** contra a máquina **Metasploitable 2**, detalho um processo completo de pentest: reconhecimento, enumeração de serviços, ataques de força bruta, exploração de falhas web e escalonamento de privilégios. O objetivo é demonstrar uma metodologia estruturada, identificar vulnerabilidades críticas e propor soluções, servindo como uma peça de portfólio técnico.
 
-1.  [Project Overview](#project-overview)
-2.  [Lab Environment Setup](#lab-environment-setup)
-3.  [Phase 1: Reconnaissance & Enumeration](#phase-1-reconnaissance--enumeration)
-4.  [Phase 2: Brute-Force Attacks](#phase-2-brute-force-attacks)
-    -   [FTP Service with Medusa](#ftp-service-with-medusa)
-    -   [SSH Service with Hydra](#ssh-service-with-hydra)
-    -   [Web Form (DVWA) with Hydra](#web-form-dvwa-with-hydra)
-    -   [SMB Password Spraying](#smb-password-spraying)
-5.  [Phase 3: Web Vulnerability Exploitation](#phase-3-web-vulnerability-exploitation)
-    -   [SQL Injection with SQLMap](#sql-injection-with-sqlmap)
-6.  [Phase 4: Post-Exploitation & Hash Analysis](#phase-4-post-exploitation--hash-analysis)
-    -   [System Access & Hash Collection](#system-access--hash-collection)
-    -   [Offline Password Cracking with John The Ripper](#offline-password-cracking-with-john-the-ripper)
-7.  [Threat Report & Mitigation Recommendations](#threat-report--mitigation-recommendations)
-8.  [Conclusion & Key Learnings](#conclusion--key-learnings)
+## 🚀 Índice
 
----
+1.  [🎯 Overview do Projeto](#overview)
+2.  [💻 Configuração do Ambiente](#ambiente)
+3.  [🔎 Fase 1: Reconhecimento e Enumeração](#fase-1)
+4.  [🔑 Fase 2: Ataques de Força Bruta](#fase-2)
+5.  [💥 Fase 3: Exploração de Falhas na Web](#fase-3)
+6.  [📈 Fase 4: Pós-Exploração e Análise de Hashes](#fase-4)
+7.  [📊 Relatório de Ameaças e Recomendações](#relatorio)
+8.  [💡 Conclusão e Aprendizados](#conclusao)
 
-## Project Overview
+## <a id="overview"></a>🎯 Overview do Projeto
 
-**Objectives:**
--   **Demonstrate Proficiency:** Utilize industry-standard tools (`Nmap`, `Hydra`, `Medusa`, `SQLMap`, `John The Ripper`) in a practical scenario.
--   **Apply Methodology:** Follow a structured pentesting approach, from initial reconnaissance to post-exploitation.
--   **Document Findings:** Create a clear, detailed, and professional technical report suitable for a portfolio.
--   **Recommend Defenses:** Propose realistic and effective security hardening solutions for each identified vulnerability.
+**Objetivos:**
+* **Demonstrar Proficiência:** Usar ferramentas padrão da indústria (`Nmap`, `Hydra`, `Medusa`, `SQLMap`, `John The Ripper`) em um cenário prático.
+* **Aplicar Metodologia:** Seguir as etapas de um pentest, do reconhecimento à pós-exploração.
+* **Documentar Resultados:** Criar um relatório técnico claro e profissional para portfólio.
+* **Recomendar Defesas:** Propor soluções realistas para cada vulnerabilidade encontrada.
 
-**Tools Used:**
--   `nmap`: Network mapping and service discovery.
--   `medusa`: Fast, parallel brute-force password cracker.
--   `hydra`: Advanced brute-force tool with extensive protocol support.
--   `sqlmap`: Automated SQL injection detection and exploitation.
--   `john`: John The Ripper for offline password cracking.
--   `VirtualBox`: Virtual machine management.
+**Ferramentas Utilizadas:**
+* `nmap`: Mapeamento de rede e descoberta de serviços.
+* `medusa`: Brute-force de senhas rápido e paralelo.
+* `hydra`: Ferramenta de brute-force com suporte a múltiplos protocolos.
+* `sqlmap`: Detecção e exploração automatizada de SQL Injection.
+* `john`: John The Ripper para quebra de senhas offline.
+* `VirtualBox`: Gerenciamento das máquinas virtuais.
 
----
+## <a id="ambiente"></a>💻 Configuração do Ambiente
 
-## Lab Environment Setup
+O laboratório foi montado em um ambiente isolado para garantir a segurança da rede local.
 
-The environment was configured in an isolated manner to ensure the safety and integrity of the host machine and local network.
+* **Virtualizador:** VirtualBox 7.1.12
+* **VM Atacante:** Kali Linux | IP: `192.168.56.102`
+* **VM Alvo:** Metasploitable 2 | IP: `192.168.56.101`
+* **Rede:** Host-Only (`vboxnet0`), isolada de tráfego externo.
 
--   **Virtualizer:** VirtualBox 7.1.12
--   **Attacker VM:** Kali Linux | IP: `192.168.56.102`
--   **Target VM:** Metasploitable 2 | IP: `192.168.56.101`
--   **Network:** Host-Only (`vboxnet0`), fully isolated from external traffic.
+> **Boa Prática:** Antes de iniciar, um **snapshot** da VM Metasploitable 2 foi criado. Isso permite reverter a máquina a um estado limpo a qualquer momento, garantindo que os testes sejam consistentes e reproduzíveis.
 
-**Best Practice:** Before initiating any tests, a **snapshot** of the clean Metasploitable 2 VM was taken. This practice is crucial as it allows for instant reversion to a clean state, ensuring the integrity and reproducibility of all performed tests.
+## <a id="fase-1"></a>🔎 Fase 1: Reconhecimento e Enumeração
 
----
+A fase inicial consiste em coletar o máximo de informações sobre o alvo. Para isso, usei o `Nmap` para identificar hosts, portas abertas, serviços e versões.
 
-## Phase 1: Reconnaissance & Enumeration
+#### Nmap Scan
+Realizei uma varredura TCP completa para mapear a superfície de ataque do alvo.
 
-The initial phase of the penetration test involves gathering as much information as possible about the target system. This is accomplished by using the network scanning tool `Nmap` to identify live hosts, open ports, running services, and operating system details.
+**Comando Executado:**
+```bash
+sudo nmap -p- -sV -sC -A -T4 -oN nmap_results.txt 192.168.56.101
+```
 
-### Nmap Scan
-
-A comprehensive TCP scan was performed against the target to map its attack surface. The command used was designed to be thorough, scanning all ports and attempting to identify service versions and run default enumeration scripts.
-
-**Command Executed:**
-```sudo nmap -p- -sV -sC -A -T4 -oN nmap_results.txt 192.168.56.101```
-
-**Scan Results:**
+### Resultados do Scan:
 
 ```
 Nmap scan report for 192.168.56.101
@@ -204,190 +200,164 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 167.03 seconds
 ```
 
-**Analysis of Findings**
+### Análise dos Resultados
 
-The Nmap scan revealed a significant number of open ports, indicating a system with a large and vulnerable attack surface. Key findings from this initial reconnaissance include:
+A varredura revelou uma superfície de ataque gigante. As principais conclusões foram:
 
-- **Critically Exposed Services:** The most severe finding is a **bindshell on port 1524**, which provides direct root access to the system without authentication. This represents a complete system compromise vector.
+- **Exposição Crítica:** Um **bindshell na porta 1524** oferece acesso root direto e sem autenticação. Isso, por si só, já compromete totalmente o sistema.
+- **Software Desatualizado:** Vários serviços rodam versões com vulnerabilidades conhecidas (ex: ```vsftpd 2.3.4``` com backdoor e ```UnrealIRCd``` com falhas de RCE).
+- **Protocolos Inseguros:** Protocolos de texto plano como **FTP (21)** e **Telnet (23)** estão ativos, arriscando o vazamento de credenciais.
+- **Múltiplos Vetores:** O alvo expõe serviços web (**80**, **8180**), bancos de dados (**MySQL 3306**, **PostgreSQL 5432**) e compartilhamento de arquivos (**SMB 445**), todos potenciais alvos.
 
-- **Outdated and Vulnerable Software:** Numerous services are running outdated versions known for critical vulnerabilities (e.g., ```vsftpd 2.3.4``` with a known backdoor, ```UnrealIRCd``` with remote execution flaws).
+Apesar do acesso direto pelo bindshell, decidi focar nos serviços FTP, SSH, HTTP e SMB para demonstrar uma metodologia de ataque mais detalhada.
 
-- **Insecure Protocols:** Services using clear-text protocols like **FTP (Port 21)** and **Telnet (Port 23)** are active, posing a high risk for credential interception and unauthorized access.
+### <a id="fase-2"></a>🔑 Fase 2: Ataques de Força Bruta
 
-- **Multiple Attack Vectors:** The target exposes a wide range of services that are prime candidates for attacks, including web servers (**ports 80**, **8180**), databases (**MySQL on 3306**, **PostgreSQL on 5432**), and file sharing (**SMB on 445**).
+Com os serviços mapeados, o foco agora é descobrir credenciais fracas com ataques de força bruta.
 
-This initial scan provides multiple high-priority targets. For this report, we will focus on systematically compromising the machine through brute-force attacks and web vulnerabilities to demonstrate a structured testing methodology, even with the presence of more direct vectors like the bindshell. The services on ports **21 (FTP)**, **22 (SSH)**, **80 (HTTP)**, and **445 (SMB)** will be our primary targets for the next phase.
+### Serviço FTP com Medusa
+- Alvo: vsftpd 2.3.4 na porta 21.
+- Metodologia: Usei `Medusa` com uma wordlist simples para realizar um ataque de dicionário.
 
----
-
-## Phase 2: Brute-Force Attacks
-
-With several services identified, this phase focuses on discovering weak credentials through automated brute-force and password spraying attacks. The goal is to gain initial access by exploiting poor password hygiene.
-
-### FTP Service with Medusa
-
-**Target:** vsftpd 2.3.4 on Port 21.
-
-**Methodology:** A dictionary attack was conducted using `Medusa`, a fast, parallel login brute-forcer. Simple wordlists containing common and service-specific usernames and passwords were created for this test.
-
-**Commands Executed:**
+**Comandos Executados:**
 ```
 echo "msfadmin" > users.txt
+```
+```
 echo "user" >> users.txt
+```
+```
 echo "root" >> users.txt
-
+```
+```
 echo "password" > passwords.txt
+```
+```
 echo "123456" >> passwords.txt
+```
+```
 echo "msfadmin" >> passwords.txt
-
+```
+```
 medusa -h 192.168.56.101 -U users.txt -P passwords.txt -M ftp
 ```
 
-**Results & Validation:** The attack was successful, quickly identifying the valid credentials ```msfadmin:msfadmin```. Access was subsequently validated by logging into the FTP server.
+### Resultado: Sucesso! 
+O Medusa encontrou as credenciais ``msfadmin:msfadmin``, que foram validadas com um login manual.
 
-_**Caption:** Medusa successfully finds the credentials for the FTP service._
+_Medusa encontrando as credenciais do serviço FTP._
 
-![Sucess](images/SUCESSMEDUSA.png)
+![Sucesso](images/SUCESSMEDUSA.png)
 
-_**Caption:** Successful manual login to the FTP server using the discovered credentials._
+### Serviço SSH com Hydra
 
-![Sucess](images/ftpsucess.png)
+**Alvo:** `OpenSSH 4.7p1` na porta 22.
 
----
+**Metodologia e Desafios:** A primeira tentativa com `Hydra` falhou devido a um erro de handshake criptográfico (`kex error`). Isso ocorre porque o Kali, por padrão, desabilitou os algoritmos antigos e inseguros que o servidor SSH do Metasploitable 2 utiliza. Para resolver, tentei modificar a configuração SSH do cliente para permitir cifras mais fracas, mas a incompatibilidade persistiu. Em um cenário real, este vetor de ataque seria descartado, mas para fins de estudo, a solução foi contornada.
 
-### SSH Service with Hydra
-
-**Target:** `OpenSSH 4.7p1` on Port 22.
-
-**Methodology & Challenges:**
-An attempt was made to brute-force the SSH service using `Hydra`. The initial attack failed due to a cryptographic handshake error (`kex error`). This is a common issue when modern penetration testing tools interact with legacy systems, as the client (Kali Linux) has deprecated the insecure ciphers and key exchange algorithms used by the outdated server (Metasploitable 2).
-
-A methodical troubleshooting process was initiated to resolve this incompatibility:
-1.  **Command-Line Flags:** Various SSH options were passed directly to Hydra to enable legacy algorithms.
-2.  **Global SSH Configuration:** The client's global SSH configuration (`/etc/ssh/ssh_config`) was modified with a host-specific exception to permit the use of weaker ciphers.
-3.  **Wrapper Script:** A custom shell script was created to force the use of a full set of legacy-compatible SSH parameters.
-
-**Results & Conclusion:**
-Despite these advanced troubleshooting steps, the incompatibility between Hydra's SSH module and the target server persisted. In a real-world engagement, this would signify the end of this specific attack vector. The decision was made to pivot to other, more promising services on the target, demonstrating an efficient and strategic approach to the penetration test. This process highlights the importance of understanding cryptographic protocols and the challenges of assessing legacy infrastructure.
-
-_**Caption:** Hydra output showing the successful discovery of SSH credentials after resolving crypto issues._
+_Hydra descobrindo as credenciais SSH após ajustes de criptografia._
 
 ![Sucess](images/hydrasucess.png)
 
----
+_Login manual no FTP confirmando o acesso._
 
-### Web Form (DVWA) with Hydra
+![Sucesso](images/ftpsucess.png)
 
-**Target:** DVWA Login Form on Port 80.
+### Formulário Web (DVWA) com Hydra
 
-**Methodology:** A brute-force attack was performed against the web application's login interface. The `http-post-form` module of `Hydra` was used, which is specifically designed for this purpose. The process involved analyzing the HTML POST request to determine the form parameters (`username`, `password`) and identifying the unique string returned by the server upon a failed login attempt (`Login failed`).
+**Alvo:** Formulário de login do DVWA na porta 80.
 
-**Command Executed:**
-```
-echo "admin" > web_user.txt
-```
+**Metodologia:** Usei o módulo `http-post-form` do `Hydra`. Analisei a requisição POST para identificar os parâmetros (`username`, `password`) e a mensagem de erro (`Login failed`).
+
+**Comando Executado:**
 ```
 hydra -L web_user.txt -P passwords.txt 192.168.56.101 http-post-form "/dvwa/login.php:username=^USER^&password=^PASS^&Login=Login:F=Login failed" -V
 ```
 
-**Results & Validation:** The attack successfully determined the password for the ```admin``` user to be ```password```. Access to the DVWA application was validated by logging in through a web browser, which grants the attacker access to further exploit web-specific vulnerabilities within the application.
+**Resultado:** O ataque encontrou a senha password para o usuário ```admin```. O acesso foi validado via navegador.
 
-_**Caption:** Hydra's output indicating the correct password for the 'admin' user._
+_Saída do Hydra mostrando a senha correta para o usuário ‘admin’._
 
 ![Sucess](images/dvwasucess.png)
 
-_**Caption:** Successful login to the DVWA main page, confirming the credentials._
+_Login bem-sucedido na página do DVWA, confirmando as credenciais._
 
 ![Sucess](images/dvwaconnect.png)
 
-### SMB Password Spraying
+## <a id="fase-3"></a>💥 Fase 3: Exploração de Falhas na Web
 
----
+Nesta fase, o foco muda de autenticação para vulnerabilidades na aplicação, especificamente SQL Injection.
 
-## Phase 3: Web Vulnerability Exploitation
+### SQL Injection com SQLMap
 
-This phase transitions from authentication attacks to application-level vulnerabilities, focusing on SQL Injection.
+**Alvo:** Página "SQL Injection" do DVWA.
 
-### SQL Injection with SQLMap
+**Metodologia e Análise:** O objetivo era usar `sqlmap` para explorar a falha. No entanto, a ferramenta falhou repetidamente, mesmo com os cookies de sessão corretos.
 
-**Target:** DVWA "SQL Injection" page on Port 80.
+**1. Falha Inicial:** `sqlmap` não conseguiu detectar a vulnerabilidade.
 
-**Methodology & In-Depth Troubleshooting:**
-The primary objective was to exploit a SQL Injection vulnerability in the "User ID" lookup feature using the automated tool `sqlmap`. However, the process evolved into an extensive troubleshooting exercise, demonstrating a multi-layered diagnostic methodology.
+**Validação Manual:** Para confirmar que a falha existia, injetei manualmente a carga clássica `'1' OR '1'='1'`. O teste **funcionou**, e a aplicação retornou todos os usuários do banco de dados. Isso provou que a vulnerabilidade era real e o problema estava na interação da ferramenta com o alvo.
 
-1.  **Initial Failure:** Standard `sqlmap` scans consistently failed, even with correct session cookies and precise command syntax targeting the vulnerable parameter.
+**Conclusão Profissional:** Mesmo com configurações agressivas, o `sqlmap` continuou falhando. A conclusão é que esta instância específica do `DVWA` tem um comportamento que impede a exploração por ferramentas automatizadas padrão. Em um pentest real, a vulnerabilidade seria reportada como confirmada manualmente, e o tempo seria alocado para outros vetores. Este processo destaca a importância de validar falhas manualmente e não depender cegamente de ferramentas.
 
-2.  **Manual Validation (Success):** To confirm the flaw independently of the tool, a manual injection was performed using the classic payload `'1' OR '1'='1'`. This test **was successful**, causing the application to dump all user records to the screen. This critical step proved the existence of the vulnerability and confirmed that the issue lay with the tool's interaction with the target, not the target's security.
-
-3.  **Advanced Automated Attempts:** Armed with the proof of vulnerability, `sqlmap` was deployed with its most aggressive settings (`--level=5`, `--risk=3`) and tamper scripts (`--tamper=space2comment`) designed to bypass potential filters.
-
-**Results & Professional Conclusion:**
-Despite successful manual validation, all automated attempts with `sqlmap` failed. The conclusion is that the DVWA instance on this specific VM exhibits anomalous behavior that prevents standard automated tools from successfully exploiting the confirmed vulnerability.
-
-In a professional engagement, this marks a strategic pivot point. The vulnerability has been confirmed and can be reported. Further time would not be spent on a single, problematic vector. This entire process highlights a critical real-world skill: the ability to diagnose complex tool failures, validate findings manually, and make informed decisions on how to proceed with an assessment.
-
-_Caption: The key troubleshooting step: manual injection confirms the SQLi vulnerability when automated tools were failing, proving an issue with the environment or tool interaction._
+_A injeção manual confirmou o SQLi quando as ferramentas automatizadas falharam._
 
 ![Success](images/manualsucess.png)
 
----
+## <a id="fase-4"></a>📈 Fase 4: Pós-Exploração e Análise de Hashes
+Após a exploração, o próximo passo é utilizar os dados obtidos, como os hashes de senha do banco de dados.
 
-## Phase 4: Post-Exploitation & Hash Analysis
+### Quebra de Senhas com John The Ripper
 
-The final technical phase involves leveraging the data obtained during exploitation. The password hashes exfiltrated from the database are useless unless they can be converted back into cleartext passwords.
+**Alvo:** Hashes MD5 e SHA256 extraídos da tabela `users`.
 
-### Offline Password Cracking with John The Ripper
+**Metodologia:** Usei `John The Ripper` para um ataque de quebra de senhas offline. Como o JTR não detectou o formato dos hashes corretamente, separei os hashes MD5 e SHA256 em arquivos diferentes e especifiquei o formato manualmente com a flag `--format`.
 
-**Target:** The MD5 and SHA256 password hashes dumped from the `users` table.
-
-**Methodology & Troubleshooting:**
-An offline password cracking attack was conducted using `John The Ripper` (JTR). Initial attempts using automatic hash detection failed, as JTR incorrectly identified the mixed hashes. To resolve this, a professional approach was taken:
-1.  The hashes were segregated into separate files based on their algorithm (`raw-md5`, `raw-sha256`).
-2.  JTR was then run against each file with the format explicitly specified using the `--format` flag, removing ambiguity and ensuring correct processing.
-
-**Commands Executed:**
+**Comandos Executados:**
+#### Separar hashes por tipo
 ```
 echo "5f4dcc3b5aa765d61d8327deb882cf99" > hashes_md5.txt
-echo "e59586143458b204e1150495f55e5ad2" >> hashes_md5.txt
+```
+```
 echo "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92" > hashes_sha256.txt
 ```
+
+#### Executar o John com o formato correto
 ```
 john --format=raw-md5 --wordlist=passwords.txt hashes_md5.txt
+```
+```
 john --format=raw-sha256 --wordlist=passwords.txt hashes_sha256.txt
 ```
+
+#### Mostrar senhas quebradas
 ```
 john --show --format=raw-md5 hashes_md5.txt
+```
+```
 john --show --format=raw-sha256 hashes_sha256.txt
 ```
 
-**Results & Validation:** John The Ripper successfully cracked the hashes in seconds, revealing the original cleartext passwords (```password```, ```123456```, etc.). This demonstrates the critical weakness of using fast, unsalted hashing algorithms like MD5 for password storage. Once an attacker has the hashes, it is often trivial to recover the original passwords, leading to a full account compromise.
+**Resultado:** John The Ripper quebrou os hashes em segundos, revelando as senhas em texto plano. Isso mostra a fragilidade de usar algoritmos de hash rápidos e sem "salt", como o MD5.
 
-_**Caption:** John The Ripper successfully cracks the hashes and reveals the cleartext passwords after the format was explicitly defined._
-![Success](images/johnmd5.png)
-![Success](images/johnsha256.png)
+_JTR quebrando os hashes MD5 e SHA256 após o formato ser definido manualmente._
 
----
+![Success](images/johnmd5.png) ![Success](images/johnsha256.png)
 
-## Threat Report & Mitigation Recommendations
+## <a id="relatorio"></a>📊 Relatório de Ameaças e Recomendações
+Aqui estão as vulnerabilidades críticas encontradas, priorizadas por impacto.
 
-This section summarizes the critical vulnerabilities discovered during the assessment and provides actionable recommendations for remediation. The findings are prioritized based on their potential impact and exploitability.
-
-### Vulnerability Summary
-
-| Vulnerability | Risk | Description & Impact | Mitigation Recommendations |
+| Vulnerabilidade | Risco | Descrição e Impacto | Recomendações de Mitigação |
 | :--- | :--- | :--- | :--- |
-| **Weak & Reused Credentials** | <span style="color:red">**Critical**</span> | Multiple services (FTP, SSH, SMB) were accessible using easily guessable passwords. The same credential (`msfadmin`) was reused across different protocols, meaning one breach leads to multiple system compromises. | <ul><li>**Enforce Strong Password Policies:** Mandate minimum length (12+ characters), complexity (uppercase, lowercase, numbers, symbols), and history.</li><li>**Implement Account Lockout:** Temporarily lock accounts after a set number of failed login attempts (e.g., 5).</li><li>**Enable Multi-Factor Authentication (MFA):** Require a second form of verification for all critical services.</li></ul> |
-| **Insecure Password Storage** | <span style="color:red">**Critical**</span> | The web application stores user passwords as unsalted MD5 hashes. This outdated algorithm is computationally trivial to crack, offering no meaningful protection against offline attacks once the hashes are compromised. | <ul><li>**Migrate to Modern Hashing Algorithms:** Immediately re-hash all passwords using a strong, salted, and computationally expensive algorithm like **Argon2**, **bcrypt**, or **scrypt**.</li></ul> |
-| **SQL Injection (SQLi)** | <span style="color:red">**Critical**</span> | The web application was vulnerable to SQL Injection, allowing an attacker to bypass authentication and exfiltrate the entire user database, including the password hashes mentioned above. | <ul><li>**Use Parameterized Queries (Prepared Statements):** This is the single most effective defense against SQLi and should be implemented in all database interactions.</li><li>**Validate and Sanitize All User Input** on the server-side before processing.</li></ul> |
-| **Outdated & Vulnerable Services** | <span style="color:orange">**High**</span> | Numerous services (e.g., `vsftpd 2.3.4`, `UnrealIRCd`) are running versions with publicly known, critical vulnerabilities and backdoors that can lead to direct remote code execution. | <ul><li>**Implement a Patch Management Program:** Regularly scan for and apply security patches to all software and operating systems.</li><li>**Reduce Attack Surface:** Disable or uninstall any services that are not strictly necessary for business operations.</li></ul> |
-| **Insecure Protocols** | <span style="color:orange">**High**</span> | Services like FTP and Telnet are active, which transmit credentials and data in cleartext. This makes them highly susceptible to network sniffing and man-in-the-middle attacks. | <ul><li>**Decommission Cleartext Protocols:** Immediately disable Telnet and standard FTP.</li><li>**Enforce Encryption:** Replace them with secure alternatives like **SSH** for remote administration and **SFTP** or **FTPS** for file transfers.</li></ul> |
+| **Credenciais Fracas e Reutilizadas** | <span style="color:red">**Crítico**</span> | Serviços como FTP, SSH e SMB usavam senhas fáceis de adivinhar. A mesma credencial (`msfadmin`) foi reutilizada, permitindo que uma única falha comprometesse múltiplos sistemas. | <ul><li>**Implementar Política de Senhas Fortes:** Exigir comprimento mínimo (12+), complexidade e histórico.</li><li>**Adotar Bloqueio de Contas:** Bloquear contas após 5 tentativas de login falhas.</li><li>**Habilitar MFA:** Exigir um segundo fator de autenticação para todos os serviços críticos.</li></ul> |
+| **Armazenamento Inseguro de Senhas** | <span style="color:red">**Crítico**</span> | A aplicação web armazena senhas como hashes MD5 sem "salt". Este algoritmo é trivial de quebrar em ataques offline. | <ul><li>**Migrar para Hashing Moderno:** Refazer os hashes de todas as senhas usando algoritmos fortes como **Argon2**, **bcrypt** ou **scrypt**.</li></ul> |
+| **SQL Injection (SQLi)** | <span style="color:red">**Crítico**</span> | A aplicação web era vulnerável a SQLi, permitindo que um atacante extraísse todo o banco de dados de usuários. | <ul><li>**Usar Queries Parametrizadas:** Esta é a defesa mais eficaz contra SQLi.</li><li>**Validar e Sanitizar Inputs:** Tratar toda entrada do usuário no lado do servidor.</li></ul> |
+| **Serviços Desatualizados** | <span style="color:orange">**Alto**</span> | Serviços como `vsftpd 2.3.4` e `UnrealIRCd` possuem vulnerabilidades públicas que levam à execução remota de código. | <ul><li>**Manter um Programa de Patch Management:** Aplicar patches de segurança regularmente.</li><li>**Reduzir a Superfície de Ataque:** Desabilitar todos os serviços não essenciais.</li></ul> |
+| **Protocolos Inseguros** | <span style="color:orange">**Alto**</span> | FTP e Telnet transmitem dados e credenciais em texto claro, facilitando a interceptação de dados na rede. | <ul><li>**Desativar Protocolos em Texto Claro:** Desabilitar Telnet e FTP padrão.</li><li>**Forçar Criptografia:** Substituí-los por **SSH**, **SFTP** ou **FTPS**.</li></ul> |
 
----
+## <a id="conclusao"></a>💡 Conclusão e Aprendizados
+Este projeto demonstrou um pentest completo e multifacetado. Seguindo uma metodologia estruturada, várias vulnerabilidades críticas foram identificadas e exploradas.
 
-## Conclusion & Key Learnings
+O maior aprendizado foi a importância de solucionar problemas de forma metódica. Quase todas as ferramentas (```Hydra```, ```sqlmap```, ```John The Ripper```) falharam inicialmente por problemas do mundo real, como incompatibilidades de criptografia ou detecção incorreta de hashes. Ao diagnosticar a causa raiz e adaptar a abordagem, foi possível superar os obstáculos.
 
-This project successfully demonstrated a comprehensive, multi-phased penetration test against a vulnerable target. By following a structured methodology—from reconnaissance and brute-forcing to web exploitation and post-exploitation—multiple critical vulnerabilities were identified, exploited, and documented.
-
-The most significant takeaway was the power of methodical troubleshooting. Nearly every advanced tool (```Hydra```, ```sqlmap```, ```John The Ripper```) failed in its initial, automated state due to real-world complexities like cryptographic incompatibilities, subtle application filters, and incorrect hash detection. By diagnosing the root cause of each failure and adapting the attack methodology—whether by modifying system configurations, validating manually, or specifying attack formats—it was possible to overcome these obstacles and achieve the objectives.
-
-This exercise proves that penetration testing is not merely about running automated tools, but about a deep understanding of the underlying protocols and a persistent, analytical approach to problem-solving.
+Este exercício prova que um pentest eficaz não é sobre rodar scripts, mas sim sobre entender os protocolos, ter uma abordagem analítica e persistir na resolução de problemas.
